@@ -1,11 +1,13 @@
 package com.scaler.demoproject.controller;
 
+import com.scaler.demoproject.model.Category;
 import com.scaler.demoproject.model.Product;
 import com.scaler.demoproject.service.FakeStoreProductService;
 import com.scaler.demoproject.service.ProductService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 
@@ -45,8 +47,27 @@ public class ProductController {
     }
 
     @GetMapping("/products")
-    public void getAllProducts() {
-        productService.getAllProducts();
+    public List<Product> getAllProducts() {
+        return productService.getAllProducts();
     }
 
+    @DeleteMapping("/products/{id}")
+    public String deleteProduct(@PathVariable("id") Long productId) {
+        return productService.deleteProduct(productId);
+    }
+
+    @PutMapping("/products")
+    public String updateProduct(@RequestBody Product product) {
+        return productService.updateProduct(product);
+    }
+
+    @GetMapping("/products/category/{category}")
+    public List<Product> getProductsByCategory(@PathVariable("category") String category) {
+        return productService.getProductsByCategory(category);
+    }
+
+    @GetMapping("/products/categories")
+    public List<Category> getCategories() {
+        return productService.getCategories();
+    }
 }
