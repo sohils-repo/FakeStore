@@ -32,12 +32,11 @@ public class ProductController {
     public Product getProduct(@PathVariable("id") Long productId) throws ProductNotFoundException {
         // Whenever someone is doing a get request on /product/{id}
         // Plz execute this method
-        Product currentProduct = productService.getSingleProduct(productId);
-        return currentProduct;
+        return productService.getSingleProduct(productId);
     }
 
     @GetMapping("/products")
-    public List<Product> getAllProducts() {
+    public List<Product> getAllProducts() throws ProductNotFoundException {
         return productService.getAllProducts();
     }
 

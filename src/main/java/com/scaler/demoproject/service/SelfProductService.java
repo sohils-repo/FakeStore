@@ -2,6 +2,7 @@ package com.scaler.demoproject.service;
 
 import com.scaler.demoproject.dto.CategoryDto;
 import com.scaler.demoproject.exceptions.ProductNotFoundException;
+import com.scaler.demoproject.model.BaseModel;
 import com.scaler.demoproject.model.Category;
 import com.scaler.demoproject.model.Product;
 import com.scaler.demoproject.repositories.CategoryRepository;
@@ -27,16 +28,24 @@ public class SelfProductService implements ProductService {
 
     @Override
     public Product getSingleProduct(Long productId) throws ProductNotFoundException {
-        Optional<Product> product = productRepository.findById(productId);
-        if (product.isPresent()) {
-            return product.get();
+//        Product product = productRepository.findByIdAndDeleted(productId, false);
+        Optional<Product> foundProduct = productRepository.findById(productId);
+        if (foundProduct.isPresent()) {
+            Product product = foundProduct.get();
+            if (!product.isDeleted())
+                return product;
         }
         throw new ProductNotFoundException("Product with Id " + productId + " not found");
     }
 
     @Override
-    public List<Product> getAllProducts() {
-        return productRepository.findAll();
+    public List<Product> getAllProducts() throws ProductNotFoundException {
+        List<Product> products = productRepository.findAll();
+        products = products.stream().filter(p -> !p.isDeleted()).toList();
+        if (products == null) {
+            throw new ProductNotFoundException("No Products found");
+        }
+        return products;
     }
 
     @Override
@@ -46,12 +55,16 @@ public class SelfProductService implements ProductService {
             // No category with our title in the database
             Category newCat = new Category();
             newCat.setTitle(product.getCategory().getTitle());
+            newCat.setCreatedAt(new Date());
+            newCat.setUpdatedAt(new Date());
             Category newRow = categoryRepository.save(newCat);
             // newRow will have now catId
             product.setCategory(newRow);
         } else {
             product.setCategory(cat);
         }
+        product.setCreatedAt(new Date());
+        product.setUpdatedAt(new Date());
         productRepository.save(product);
         return product;
     }
@@ -59,6 +72,7 @@ public class SelfProductService implements ProductService {
     @Override
     public String deleteProduct(Long productId) throws ProductNotFoundException {
         Product product = getSingleProduct(productId);
+        product.setUpdatedAt(new Date());
         product.setDeleted(true);
         productRepository.save(product);
         return null;
@@ -71,9 +85,9 @@ public class SelfProductService implements ProductService {
         existingProduct.setTitle(product.getTitle());
         existingProduct.setDescription(product.getDescription());
         existingProduct.setPrice(product.getPrice());
-        existingProduct.setCategory(product.getCategory());
-        Date currentDate = new Date();
-        existingProduct.setUpdatedAt(currentDate);
+//        existingProduct.setCategory(product.getCategory());
+//        Date currentDate = new Date();
+        existingProduct.setUpdatedAt(new Date());
         return productRepository.save(existingProduct);
     }
 
