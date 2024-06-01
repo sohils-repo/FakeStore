@@ -1,32 +1,23 @@
 package com.scaler.demoproject.controller;
 
-import com.scaler.demoproject.model.Category;
+import com.scaler.demoproject.dto.CategoryDto;
+import com.scaler.demoproject.dto.ProductDto;
+import com.scaler.demoproject.exceptions.ProductNotFoundException;
 import com.scaler.demoproject.model.Product;
-import com.scaler.demoproject.service.FakeStoreProductService;
 import com.scaler.demoproject.service.ProductService;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.TreeMap;
 
 @RestController
 public class ProductController {
 
-// POST /product
-//    Request Body
-//    {
-//        "title": "Apple airpods",
-//            "price": 25000,
-//            "description": "Best airpods ever",
-//            "image": "https://i.pravatar.cc",
-//            "category": "electronic"
-//    }
+    private final ProductService productService;
 
-    private ProductService productService;
-
-    public ProductController(ProductService productService) {
+    public ProductController(@Qualifier("selfproductservice") ProductService productService) {
         this.productService = productService;
     }
 
@@ -34,12 +25,11 @@ public class ProductController {
     public Product createProduct(@RequestBody Product product) {
        // Whenever someone is doing a post request on /product
        // Plz execute this method
-        Product postRequestResponse = productService.createProduct(product);
-        return postRequestResponse;
+        return productService.createProduct(product);
     }
 
     @GetMapping("/products/{id}")
-    public Product getProduct(@PathVariable("id") Long productId) {
+    public Product getProduct(@PathVariable("id") Long productId) throws ProductNotFoundException {
         // Whenever someone is doing a get request on /product/{id}
         // Plz execute this method
         Product currentProduct = productService.getSingleProduct(productId);
@@ -52,12 +42,12 @@ public class ProductController {
     }
 
     @DeleteMapping("/products/{id}")
-    public String deleteProduct(@PathVariable("id") Long productId) {
+    public String deleteProduct(@PathVariable("id") Long productId) throws ProductNotFoundException {
         return productService.deleteProduct(productId);
     }
 
     @PutMapping("/products")
-    public String updateProduct(@RequestBody Product product) {
+    public Product updateProduct(@RequestBody Product product) throws ProductNotFoundException {
         return productService.updateProduct(product);
     }
 
@@ -67,7 +57,13 @@ public class ProductController {
     }
 
     @GetMapping("/products/categories")
-    public List<Category> getCategories() {
+    public List<CategoryDto> getCategories() {
         return productService.getCategories();
     }
+
+    @ExceptionHandler(ProductNotFoundException.class)
+    public ResponseEntity<String> handleProductNotFoundException(ProductNotFoundException e) {
+        return new ResponseEntity<>(e.getMessage(), HttpStatus.NOT_FOUND);
+    }
+
 }
